@@ -3,99 +3,143 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>사주팔자 — 나의 운명을 읽는 시간</title>
-<meta name="description" content="생년월일시로 사주팔자를 풀어보는 만세력 사이트">
+<title>서사주 — 당신이라는 우주, 그 첫 장을 열다</title>
+<meta name="description" content="생년월일시로 풀어보는 정통 사주팔자와 78장 타로카드 상담">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div class="stars" aria-hidden="true"></div>
-
-<header class="hero">
-  <p class="brand">萬歲曆 · 四柱八字</p>
-  <h1>사주팔자</h1>
-  <p class="sub">태어난 순간의 하늘과 땅의 기운을 읽어드립니다</p>
+<header class="site-head">
+  <a class="brand" href="#top">
+    <span class="brand-mark">徐</span>
+    <span class="brand-txt"><b>서사주</b><small>SEOSAJU</small></span>
+  </a>
+  <nav class="site-nav">
+    <a href="#saju">무료 사주</a>
+    <a href="#tarot">타로 상담</a>
+    <a href="#sajuResult">운세 리포트</a>
+    <a href="#guide">이용 안내</a>
+  </nav>
+  <a class="head-cta" href="#saju">나의 사주 열기 ✦</a>
 </header>
 
-<main>
-  <nav class="tabs">
-    <button data-tab="saju" class="on">사주팔자</button>
-    <button data-tab="tarot">타로카드</button>
-  </nav>
-
-  <div id="tab-saju">
-  <!-- 입력 -->
-  <section class="card" id="inputCard">
-    <h2>생년월일시 입력</h2>
-    <div class="form-grid">
-      <label class="field">
-        <span>이름 <em>(선택)</em></span>
-        <input type="text" id="name" placeholder="예: 김철수" maxlength="10" autocomplete="off">
-      </label>
-      <div class="field">
-        <span>성별</span>
-        <div class="seg" id="genderSeg">
-          <button type="button" data-v="male" class="on">남자</button>
-          <button type="button" data-v="female">여자</button>
-        </div>
+<main id="top">
+  <!-- 히어로 + 사주 입력 -->
+  <section id="saju" class="hero">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="kicker"><i>·</i> 당신을 읽는 시간, 서사주</p>
+        <h1>당신이라는 우주,<br><em>그 첫 장을 열다.</em></h1>
+        <p class="lede">태어난 순간에 담긴 다섯 가지 기운.<br>나를 이해하는 새로운 이야기가 시작됩니다.</p>
+        <div class="hero-visual"><img src="img/hero.jpg" alt="황금빛 혼천의"></div>
+        <ul class="trust">
+          <li><b>⌖</b> 한국 천문연구원 절기 변환</li>
+          <li><b>▤</b> 만세력 근거 함께 보는 풀이</li>
+          <li><b>◐</b> 결제 전 상담 내용 확인</li>
+        </ul>
       </div>
-      <div class="field">
-        <span>달력</span>
-        <div class="seg" id="calSeg">
-          <button type="button" data-v="solar" class="on">양력</button>
-          <button type="button" data-v="lunar">음력</button>
-        </div>
-      </div>
-      <div class="field">
-        <span>생년월일</span>
-        <div class="date-row">
-          <select id="yearSel" aria-label="년"></select>
-          <select id="monthSel" aria-label="월"></select>
-          <select id="daySel" aria-label="일"></select>
-        </div>
-        <label class="leap hidden" id="leapWrap"><input type="checkbox" id="leapChk"> 윤달입니다</label>
-      </div>
-      <label class="field">
-        <span>태어난 시간</span>
-        <select id="hourSel"></select>
-      </label>
+      <aside class="panel">
+        <p class="p-kick">YOUR PERSONAL READING</p>
+        <h2>나의 서사를 시작하세요 <span class="spark">✦</span></h2>
+        <form id="sajuForm" onsubmit="return false">
+          <label class="field"><span>이름 또는 별명 <em>선택</em></span>
+            <input type="text" id="name" placeholder="어떻게 불러드릴까요?" maxlength="12" autocomplete="off">
+          </label>
+          <div class="field"><span>생년월일</span>
+            <div class="seg mini" id="calSeg">
+              <button type="button" data-v="solar" class="on">양력</button>
+              <button type="button" data-v="lunar">음력</button>
+            </div>
+            <div class="row3">
+              <select id="yearSel" aria-label="년"></select>
+              <select id="monthSel" aria-label="월"></select>
+              <select id="daySel" aria-label="일"></select>
+            </div>
+            <label class="check hidden" id="leapWrap"><input type="checkbox" id="leapChk"><span>윤달</span></label>
+          </div>
+          <div class="field"><span>태어난 시간</span>
+            <div class="row2">
+              <select id="hourSel" aria-label="태어난 시간"></select>
+              <div class="seg mini" id="genderSeg">
+                <button type="button" data-v="F" class="on">여성</button>
+                <button type="button" data-v="M">남성</button>
+              </div>
+            </div>
+          </div>
+          <p class="err hidden" id="errMsg"></p>
+          <button class="cta" id="goBtn" type="button">나의 이야기 펼치기 ✦</button>
+          <p class="fine">무료 풀이 · 입력은 서버에 저장되지 않습니다.</p>
+        </form>
+      </aside>
     </div>
-    <p class="err hidden" id="errMsg"></p>
-    <button class="cta" id="goBtn">내 사주 보기</button>
-    <p class="hint">시간을 모르면 '모름'을 선택하세요. 시주(時柱) 없이 풀이합니다.</p>
   </section>
 
-  <!-- 결과 -->
-  <section id="result" class="hidden"></section>
-  </div><!-- /tab-saju -->
+  <!-- 사주 결과 -->
+  <section id="sajuResult" class="hidden"></section>
 
-  <div id="tab-tarot" class="hidden">
-    <section class="card">
-      <h2>타로카드</h2>
-      <div class="field">
-        <span>스프레드</span>
-        <div class="seg" id="spreadSeg">
-          <button type="button" data-v="1" class="on">오늘의 카드 · 1장</button>
-          <button type="button" data-v="3">과거 · 현재 · 미래 · 3장</button>
+  <!-- 타로 -->
+  <section id="tarot" class="tarot-room">
+    <div class="troom-inner">
+      <p class="kicker center">SEOSAJU · THE TAROT ROOM</p>
+      <h2 class="center">카드에 묻고, <em>나에게 답하다.</em></h2>
+      <p class="lede center">지금의 질문을, 다른 시선으로.</p>
+
+      <ol class="steps" id="taroSteps">
+        <li class="on"><i>01</i> 질문 담기</li>
+        <li><i>02</i> 카드 고르기</li>
+        <li><i>03</i> 이야기 읽기</li>
+      </ol>
+
+      <div class="tgrid">
+        <div class="tbox">
+          <h3><i>01</i> 무엇을 살펴볼까요?</h3>
+          <p class="tlabel">이야기의 주제</p>
+          <div class="chips" id="topicChips">
+            <button type="button" data-v="연애" class="on">연애</button>
+            <button type="button" data-v="관계">관계</button>
+            <button type="button" data-v="직업">직업</button>
+            <button type="button" data-v="진로">진로</button>
+            <button type="button" data-v="금전">금전</button>
+            <button type="button" data-v="일상">일상</button>
+          </div>
+          <p class="tlabel">마음에 담긴 질문 <em>선택</em></p>
+          <textarea id="taroQ" maxlength="200" placeholder="예: 연락이 뜸해진 관계에서, 나는 어떤 대화를 먼저 해보면 좋을까요?"></textarea>
+          <p class="count"><span id="qCount">0</span>/200</p>
+        </div>
+        <div class="tbox">
+          <h3><i>02</i> 어떤 깊이로 읽을까요?</h3>
+          <div class="counts" id="countSel">
+            <button type="button" data-v="1"><b>1장</b><span>한 가지 메시지<br>핵심을 가볍게 살펴보기</span></button>
+            <button type="button" data-v="3" class="on"><b>3장</b><span>상황과 다음 행동<br>현재 · 영향 · 행동</span></button>
+            <button type="button" data-v="5"><b>5장</b><span>조금 더 깊은 탐색<br>상황 · 장애물 · 자원 · 행동 · 가능성</span></button>
+          </div>
+          <label class="switch-row"><span>역방향도 함께 읽기 <small>역방향 · 내면 · 부족 · 주의의 관점</small></span>
+            <span class="switch"><input type="checkbox" id="revToggle" checked><i></i></span>
+          </label>
+          <p class="fine">78장 전체를 무작위로 섞어요.<br>선택한 카드와 방향은 바뀌지 않아요.</p>
         </div>
       </div>
-      <label class="field" style="margin-top:16px">
-        <span>질문 <em>(선택)</em></span>
-        <input type="text" id="taroQ" placeholder="예: 이번 달 이직 운은 어떨까요?" maxlength="60" autocomplete="off">
-      </label>
-      <button class="cta" id="drawBtn">카드 섞고 뽑기</button>
-      <p class="hint">78장의 덱을 섞어 뽑습니다. 카드를 눌러 뒤집어보세요.</p>
-    </section>
-    <div id="tarotStage"></div>
-    <div id="tarotReading"></div>
-  </div>
+
+      <button class="cta wide" id="toPickBtn">✦ 이 질문으로 카드 고르기</button>
+
+      <div id="pickStage" class="hidden">
+        <p class="pick-guide">마음이 가는 카드를 <b id="pickNeed">3</b>장 골라주세요 <span class="pcount"><span id="pickCount">0</span>/<span id="pickTotal">3</span></span></p>
+        <div id="cardFan" class="fan"></div>
+      </div>
+
+      <div id="tarotReading"></div>
+    </div>
+  </section>
 </main>
 
-<footer>
-  <p>전통 명리학의 계산 방식을 따른 참고용 콘텐츠입니다. 중요한 결정은 신중하게.</p>
-  <p class="copy">사주팔자 · GitHub Pages</p>
+<footer id="guide">
+  <div class="foot-inner">
+    <p class="f-note">참고용 콘텐츠입니다. 중요한 결정은 신중하게.<br>입력하신 정보는 이 브라우저에서만 계산되고, 서버에 저장되지 않습니다.</p>
+    <p class="f-meta">RIDER-WAITE-SMITH · 78 CARDS <span>▸ 카드 출처와 해석 안내</span></p>
+    <p class="f-brand">서사주 · SEOSAJU</p>
+  </div>
 </footer>
 
 <script src="js/saju.js"></script>

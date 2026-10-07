@@ -1,4 +1,4 @@
-/* 사주팔자 사이트 — UI 로직 */
+/* 서사주 — UI 로직 */
 (function(){
 'use strict';
 
@@ -37,7 +37,30 @@ const TEN_GOD_MEAN = { '비견':'나와 같은 기운 · 동료, 자신감', '�
   '편관':'도전과 권위 · 시험, 승부', '정관':'책임과 명예 · 직장, 신뢰',
   '편인':'직관과 특별함 · 영감, 비주류', '정인':'학문과 배려 · 공부, 인덕' };
 
-/* ---------- 폼 초기화 ---------- */
+/* ---------- 공용 ---------- */
+function segWire(id){
+  const el = $(id);
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button'); if(!b) return;
+    el.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    if(id === 'calSeg') $('leapWrap').classList.toggle('hidden', b.dataset.v !== 'lunar');
+  });
+}
+const segVal = id => $(id).querySelector('.on').dataset.v;
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function shuffledIdx(n){
+  const idx = Array.from({length:n}, (_, i) => i);
+  const rnd = new Uint32Array(n);
+  crypto.getRandomValues(rnd);
+  for(let i = n - 1; i > 0; i--){
+    const j = rnd[i] % (i + 1);
+    [idx[i], idx[j]] = [idx[j], idx[i]];
+  }
+  return idx;
+}
+
+/* ---------- 사주 폼 ---------- */
 const nowY = new Date().getFullYear();
 function fillSelect(sel, from, to, suffix){
   for(let v = from; v <= to; v++){
@@ -50,10 +73,9 @@ fillSelect($('yearSel'), 1900, nowY, '년');
 fillSelect($('monthSel'), 1, 12, '월');
 fillSelect($('daySel'), 1, 31, '일');
 $('yearSel').value = 1990; $('monthSel').value = 1; $('daySel').value = 1;
-
 (function(){
   const h = $('hourSel');
-  const o0 = document.createElement('option'); o0.value = ''; o0.textContent = '모름';
+  const o0 = document.createElement('option'); o0.value = ''; o0.textContent = '태어난 시간 모름';
   h.appendChild(o0);
   for(let hh = 0; hh < 24; hh++){
     const b = Math.floor(((hh + 1) % 24) / 2);
@@ -62,20 +84,8 @@ $('yearSel').value = 1990; $('monthSel').value = 1; $('daySel').value = 1;
     h.appendChild(o);
   }
 })();
+segWire('calSeg'); segWire('genderSeg');
 
-function segWire(id){
-  const el = $(id);
-  el.addEventListener('click', e => {
-    const b = e.target.closest('button'); if(!b) return;
-    el.querySelectorAll('button').forEach(x => x.classList.remove('on'));
-    b.classList.add('on');
-    if(id === 'calSeg') $('leapWrap').classList.toggle('hidden', b.dataset.v !== 'lunar');
-  });
-}
-segWire('genderSeg'); segWire('calSeg');
-const segVal = id => $(id).querySelector('.on').dataset.v;
-
-/* ---------- 계산 ---------- */
 function kstMidnightMs(y, mo, d){ return Date.UTC(y, mo, d, 0, 0) - 9 * 3600 * 1000; }
 function showErr(msg){
   const e = $('errMsg');
@@ -115,15 +125,15 @@ $('goBtn').addEventListener('click', () => {
   try{ r = analyze({ solarMs, gender, hourKnown }); }
   catch(e){ showErr('계산 중 오류: ' + e.message); return; }
 
-  render(name, birthLabel, r, solarMs);
-  $('result').classList.remove('hidden');
-  $('result').scrollIntoView({ behavior:'smooth', block:'start' });
+  renderSaju(name, birthLabel, r, solarMs);
+  $('sajuResult').classList.remove('hidden');
+  $('sajuResult').scrollIntoView({ behavior:'smooth', block:'start' });
 });
 
-/* ---------- 렌더 ---------- */
+/* ---------- 사주 렌더 ---------- */
 function pillarHTML(p){
   if(p.stem == null)
-    return `<div class="pillar unknown">
+    return `<div class="pillar">
       <div class="plabel">時 · 시주</div><div class="god">미상</div>
       <div class="stem"><div class="hanja">?</div><div class="kor">시간 미입력</div></div>
       <div class="branch"><div class="hanja">?</div><div class="kor"></div></div></div>`;
@@ -131,18 +141,17 @@ function pillarHTML(p){
   const lbl = { hour:'時 · 시주', day:'日 · 일주', month:'月 · 월주', year:'年 · 년주' }[p.key];
   return `<div class="pillar${p.key === 'day' ? ' day' : ''}">
     <div class="plabel">${lbl}</div><div class="god">${p.god}</div>
-    <div class="stem elb-${se}"><div class="hanja el-${se}">${CHEONGAN_HANJA[p.stem]}</div>
+    <div class="stem"><div class="hanja el-${se}">${CHEONGAN_HANJA[p.stem]}</div>
       <div class="kor">${CHEONGAN[p.stem]} · ${EL_NAME[se]}(${EL_HANJA[se]})</div></div>
     <div class="branch"><div class="hanja el-${be}">${JIJI_HANJA[p.branch]}</div>
       <div class="kor">${JIJI[p.branch]} · ${EL_NAME[be]}(${EL_HANJA[be]}) · ${p.branchGod}</div></div>
   </div>`;
 }
 
-function render(name, birthLabel, r, solarMs){
+function renderSaju(name, birthLabel, r, solarMs){
   const dm = DAY_MASTER[r.dayStem];
   const who = name ? `<b>${esc(name)}</b>님의 사주` : '당신의 사주';
 
-  // 오행
   let maxE = 0, minE = 0;
   for(let i = 1; i < 5; i++){ if(r.elCount[i] > r.elCount[maxE]) maxE = i; if(r.elCount[i] < r.elCount[minE]) minE = i; }
   const elBars = EL_NAME.map((n, i) => `
@@ -156,12 +165,10 @@ function render(name, birthLabel, r, solarMs){
         ? ` 반면 ${EL_NAME[minE]}(${EL_HANJA[minE]})의 기운은 사주에 보이지 않네요. ${EL_MEAN[minE]}을 의식적으로 채워보세요.`
         : ` ${EL_NAME[minE]}(${EL_HANJA[minE]})의 기운은 상대적으로 약합니다.`);
 
-  // 음양
   const yyText = r.yin === r.yang ? '음과 양의 균형이 잘 맞는 사주입니다.'
     : r.yang > r.yin ? '양(陽)의 기운이 강한 사주입니다. 밖으로 뻗어나가는 추진력과 활동성이 돋보입니다.'
     : '음(陰)의 기운이 강한 사주입니다. 안으로 다지는 신중함과 깊이가 돋보입니다.';
 
-  // 합충
   const rel = r.relations;
   const relHTML = (rel.he.length || rel.chong.length || rel.sanhe.length)
     ? `<div class="badges">` +
@@ -171,7 +178,6 @@ function render(name, birthLabel, r, solarMs){
       <p style="margin-top:10px">합(合)은 기운이 모이고 통하는 관계, 충(沖)은 부딪히며 변화가 일어나는 관계, 삼합(三合)은 세 기운이 크게 모이는 형국입니다.</p>`
     : `<p>두드러진 합·충·삼합 관계가 없습니다. 각 기운이 제자리를 지키는 안정적인 구조입니다.</p>`;
 
-  // 대운
   const ageNow = Math.floor((Date.now() - solarMs) / (365.25 * 86400000));
   const dwHTML = r.daeun.list.map(dw => {
     const isNow = ageNow >= dw.ageFrom && ageNow < dw.ageFrom + 10;
@@ -179,61 +185,48 @@ function render(name, birthLabel, r, solarMs){
       <div class="gz"><span class="el-${STEM_ELEMENT[dw.stem]}">${CHEONGAN_HANJA[dw.stem]}</span><span class="el-${BRANCH_ELEMENT[dw.branch]}">${JIJI_HANJA[dw.branch]}</span></div></div>`;
   }).join('');
 
-  // 세운
-  const nowMs = Date.now();
-  const thisYear = new Date(nowMs + 9 * 3600 * 1000).getUTCFullYear();
-  const sy = pillarYear(nowMs);
-  const sm = pillarMonth(nowMs, sy.stem);
+  const thisYear = new Date(Date.now() + 9 * 3600 * 1000).getUTCFullYear();
+  const sy = pillarYear(Date.now());
+  const sm = pillarMonth(Date.now(), sy.stem);
   const gz = (s, b) => `<span class="el-${STEM_ELEMENT[s]}">${CHEONGAN_HANJA[s]}</span><span class="el-${BRANCH_ELEMENT[b]}">${JIJI_HANJA[b]}</span>`;
-
   const godLegend = Object.entries(TEN_GOD_MEAN).map(([k, v]) => `${k}(${v.split(' ')[0]})`).join(' · ');
 
-  $('result').innerHTML = `
+  $('sajuResult').innerHTML = `
     <div class="res-head">
       <div class="who">${who}</div>
       <div class="birth">${birthLabel} · ${r.zodiac}띠</div>
       <span class="zodiac">${CHEONGAN[r.dayStem]}${EL_NAME[STEM_ELEMENT[r.dayStem]]} 일간</span>
     </div>
-
     <div class="pillars">${r.pillars.map(pillarHTML).join('')}</div>
-
     <div class="sec">
       <h3>일간 풀이 — ${CHEONGAN_HANJA[r.dayStem]}${EL_HANJA[STEM_ELEMENT[r.dayStem]]}(${CHEONGAN[r.dayStem]}${EL_NAME[STEM_ELEMENT[r.dayStem]]}) · ${dm.t}</h3>
       <p>${dm.d}</p>
       <div class="advice">💡 ${dm.a}</div>
     </div>
-
     <div class="sec">
       <h3>오행 분포</h3>
       <div class="elbars">${elBars}</div>
       <p style="margin-top:12px">${elText}</p>
     </div>
-
     <div class="sec">
       <h3>음양의 조화</h3>
       <p>양의 기운 ${r.yang} · 음의 기운 ${r.yin} — ${yyText}</p>
     </div>
-
     <div class="sec">
       <h3>합 · 충 · 삼합</h3>
       ${relHTML}
     </div>
-
     <div class="sec">
       <h3>십성 한눈에</h3>
       <p style="font-size:.85rem;color:var(--ink-dim)">${godLegend}</p>
       <p style="margin-top:8px">위 사주표의 각 글자 위에 적힌 십성은 일간(日干)인 '${CHEONGAN[r.dayStem]}'을 기준으로 본 관계입니다.</p>
     </div>
-
     <div class="sec">
       <h3>대운 (10년 주기 흐름)</h3>
-      <div class="daeun-head">
-        <span class="dir">${r.daeun.forward ? '순행' : '역행'} · 약 ${r.daeun.startYears}세 ${r.daeun.startMonths}개월부터 시작</span>
-      </div>
+      <div class="daeun-head"><span class="dir">${r.daeun.forward ? '순행' : '역행'} · 약 ${r.daeun.startYears}세 ${r.daeun.startMonths}개월부터 시작</span></div>
       <div class="daeun-list">${dwHTML}</div>
       <p style="margin-top:10px;font-size:.85rem;color:var(--ink-dim)">대운은 월주를 기준으로 10년씩 이어지는 큰 흐름입니다. 시작 나이는 출생일과 절기 사이의 간격으로 계산합니다.</p>
     </div>
-
     <div class="sec">
       <h3>올해의 운 (${thisYear}년)</h3>
       <div class="seun">
@@ -242,62 +235,33 @@ function render(name, birthLabel, r, solarMs){
       </div>
       <p style="margin-top:10px">${thisYear}년은 ${CHEONGAN_HANJA[sy.stem]}${JIJI_HANJA[sy.branch]}년(${CHEONGAN[sy.stem]}${JIJI[sy.branch]}년)입니다. 대운·세운과 일간의 관계를 함께 보면 올해의 흐름이 보입니다.</p>
     </div>
-
     <div class="res-actions">
       <button class="btn-ghost" id="retryBtn">다시 입력하기</button>
       <button class="btn-gold" id="printBtn">결과 인쇄하기</button>
     </div>
     <p class="hint" style="margin-top:14px">23시~24시는 자시(子時)로 계산하며, 일주는 자정(0시)을 기준으로 바뀝니다.</p>`;
 
-  $('retryBtn').addEventListener('click', () => {
-    $('result').classList.add('hidden');
-    $('inputCard').scrollIntoView({ behavior:'smooth' });
-  });
+  $('retryBtn').addEventListener('click', () =>
+    $('saju').scrollIntoView({ behavior:'smooth' }));
   $('printBtn').addEventListener('click', () => window.print());
-};
-
-function esc(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-/* ---------- 탭 전환 ---------- */
-document.querySelectorAll('.tabs button').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('.tabs button').forEach(x => x.classList.remove('on'));
-    b.classList.add('on');
-    $('tab-saju').classList.toggle('hidden', b.dataset.tab !== 'saju');
-    $('tab-tarot').classList.toggle('hidden', b.dataset.tab !== 'tarot');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-});
-
-/* ---------- 타로 ---------- */
-segWire('spreadSeg');
-const TAROT_POS3 = ['과거', '현재', '미래'];
-let tarotDraw = null;
-
-function shuffledDeck(){
-  const idx = TAROT_CARDS.map((_, i) => i);
-  const rnd = new Uint32Array(idx.length);
-  crypto.getRandomValues(rnd);
-  for(let i = idx.length - 1; i > 0; i--){
-    const j = rnd[i] % (i + 1);
-    [idx[i], idx[j]] = [idx[j], idx[i]];
-  }
-  return idx;
 }
 
-$('drawBtn').addEventListener('click', () => {
-  const n = +$('spreadSeg').querySelector('.on').dataset.v;
-  const deck = shuffledDeck().slice(0, n);
-  const rnd = new Uint32Array(n);
-  crypto.getRandomValues(rnd);
-  tarotDraw = deck.map((ci, i) => ({
-    card: TAROT_CARDS[ci], rev: (rnd[i] % 100) < 40,
-    pos: n === 3 ? TAROT_POS3[i] : null, flipped: false,
-  }));
-  $('tarotReading').innerHTML = '';
-  const q = $('taroQ').value.trim();
-  renderTarotStage(true, q);
-});
+/* ---------- 타로 ---------- */
+const TAROT_POS = {
+  1: ['오늘의 메시지'],
+  3: ['현재', '영향', '행동'],
+  5: ['상황', '장애물', '자원', '행동', '가능성'],
+};
+let tarotState = null;
+
+function setStep(n){
+  document.querySelectorAll('#taroSteps li').forEach((li, i) =>
+    li.classList.toggle('on', i < n));
+}
+
+segWire('topicChips'); segWire('countSel');
+$('taroQ').addEventListener('input', () =>
+  $('qCount').textContent = $('taroQ').value.length);
 
 function tarotFaceHTML(c){
   if(c.arc === 'major')
@@ -309,56 +273,94 @@ function tarotFaceHTML(c){
     `<div class="t-sym suit" style="color:${s.color}">${s.glyph}</div><div class="t-name">${c.name}</div><div class="t-en">${c.en}</div>`;
 }
 
-function renderTarotStage(shuffle, question){
-  const st = $('tarotStage');
-  st.className = 'n' + tarotDraw.length + (shuffle ? ' shuffling' : '');
-  st.innerHTML = tarotDraw.map((d, i) => `
-    <div><div class="tcard" data-i="${i}"><div class="tcard-inner">
+$('toPickBtn').addEventListener('click', () => {
+  const count = +segVal('countSel');
+  const topic = segVal('topicChips');
+  const question = $('taroQ').value.trim();
+  const useRev = $('revToggle').checked;
+  const deckIdx = shuffledIdx(TAROT_CARDS.length).slice(0, 12);
+  const rnd = new Uint32Array(12);
+  crypto.getRandomValues(rnd);
+  tarotState = {
+    count, topic, question, useRev,
+    cards: deckIdx.map((ci, i) => ({ card: TAROT_CARDS[ci], rev: useRev && (rnd[i] % 100) < 40 })),
+    picked: [], flipped: 0,
+  };
+  $('tarotReading').innerHTML = '';
+  $('pickNeed').textContent = count;
+  $('pickTotal').textContent = count;
+  $('pickCount').textContent = '0';
+
+  const fan = $('cardFan');
+  fan.classList.add('shuffling');
+  fan.innerHTML = tarotState.cards.map((d, i) => `
+    <div class="tcard" data-i="${i}"><div class="tcard-inner">
       <div class="tface tback"><div><div class="bpat">✦</div><div class="btxt">TAROT</div></div></div>
       <div class="tface tfront${d.rev ? ' is-rev' : ''}"><div class="face-rot">${tarotFaceHTML(d.card)}</div></div>
-    </div></div>${d.pos ? `<div class="t-pos"><b>${d.pos}</b></div>` : ''}
-    </div>`).join('');
-  st.querySelectorAll('.tcard').forEach(el =>
-    el.addEventListener('click', () => flipTarotCard(+el.dataset.i, el)));
-  if(shuffle) setTimeout(() => st.classList.remove('shuffling'), 1600);
-  if(question){
-    const q = document.createElement('p');
-    q.className = 'hint'; q.style.marginBottom = '4px';
-    q.textContent = 'Q. ' + question;
-    st.prepend(q);
+    </div></div>`).join('');
+  fan.querySelectorAll('.tcard').forEach(el =>
+    el.addEventListener('click', () => pickCard(+el.dataset.i)));
+  setTimeout(() => fan.classList.remove('shuffling'), 1600);
+
+  $('pickStage').classList.remove('hidden');
+  setStep(2);
+  $('pickStage').scrollIntoView({ behavior:'smooth', block:'center' });
+});
+
+function pickCard(i){
+  const st = tarotState;
+  if(!st || st.picked.includes(i) || st.picked.length >= st.count) return;
+  st.picked.push(i);
+  const el = document.querySelector(`#cardFan .tcard[data-i="${i}"]`);
+  el.classList.add('picked');
+  $('pickCount').textContent = st.picked.length;
+  if(st.picked.length === st.count){
+    document.querySelectorAll('#cardFan .tcard:not(.picked)').forEach(x => x.classList.add('dim'));
+    setTimeout(revealPicked, 500);
   }
 }
 
-function flipTarotCard(i, el){
-  const d = tarotDraw[i];
-  if(!d || d.flipped) return;
-  d.flipped = true;
-  el.classList.add('flipped');
-  setTimeout(() => renderTarotReading(i), 380);
+function revealPicked(){
+  const st = tarotState;
+  const els = st.picked.map(i => document.querySelector(`#cardFan .tcard[data-i="${i}"]`));
+  els.forEach((el, k) => setTimeout(() => {
+    el.classList.add('flipped');
+    st.flipped++;
+    setTimeout(() => renderOneReading(k), 420);
+  }, k * 550));
+  setTimeout(() => {
+    setStep(3);
+    const w = document.createElement('div');
+    w.className = 'taro-actions';
+    w.innerHTML = `<button class="btn-ghost" id="rePickBtn">다시 고르기</button>`;
+    $('tarotReading').appendChild(w);
+    $('rePickBtn').addEventListener('click', () => {
+      $('pickStage').classList.add('hidden');
+      $('tarotReading').innerHTML = '';
+      setStep(1);
+      $('tarot').scrollIntoView({ behavior:'smooth' });
+    });
+    w.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }, st.count * 550 + 900);
 }
 
-function renderTarotReading(i){
-  const d = tarotDraw[i], c = d.card;
+function renderOneReading(k){
+  const st = tarotState;
+  const i = st.picked[k];
+  const d = st.cards[i], c = d.card;
+  const pos = TAROT_POS[st.count][k];
   const div = document.createElement('div');
   div.className = 'treading';
   div.innerHTML =
-    `<div class="r-head">${d.pos ? `<span class="r-pos">${d.pos}</span>` : ''}` +
+    `<div class="r-head"><span class="r-pos">${pos}</span>` +
+    `<span class="r-topic">${esc(st.topic)}${st.question ? ' · ' + esc(st.question.slice(0, 30)) : ''}</span>` +
     `<span class="r-name">${c.name}</span>` +
     `<span class="r-dir${d.rev ? ' reversed' : ''}">${d.rev ? '역방향' : '정방향'}</span></div>` +
     `<div class="r-key">${c.key}</div><div class="r-text">${d.rev ? c.rev : c.up}</div>`;
-  $('tarotReading').appendChild(div);
-  if(tarotDraw.every(x => x.flipped)){
-    const w = document.createElement('div');
-    w.className = 'taro-actions';
-    w.innerHTML = `<button class="btn-ghost" id="redrawBtn" style="flex:1;padding:14px;border-radius:12px;cursor:pointer;font-size:1rem">다시 뽑기</button>
-      <button class="btn-gold" id="goSajuBtn" style="flex:1;padding:14px;border-radius:12px;border:none;cursor:pointer;font-size:1rem;font-weight:700">사주 보러 가기</button>`;
-    $('tarotReading').appendChild(w);
-    $('redrawBtn').addEventListener('click', () => $('drawBtn').click());
-    $('goSajuBtn').addEventListener('click', () =>
-      document.querySelector('.tabs button[data-tab="saju"]').click());
-    w.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  } else {
-    div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
+  // 완료 버튼보다 앞에 삽입
+  const actions = $('tarotReading').querySelector('.taro-actions');
+  if(actions) $('tarotReading').insertBefore(div, actions);
+  else $('tarotReading').appendChild(div);
+  div.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 })();
