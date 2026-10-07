@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사주팔자 — 나의 운명을 읽는 시간</title>
+<meta name="description" content="생년월일시로 사주팔자를 풀어보는 만세력 사이트">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;900&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="stars" aria-hidden="true"></div>
+
+<header class="hero">
+  <p class="brand">萬歲曆 · 四柱八字</p>
+  <h1>사주팔자</h1>
+  <p class="sub">태어난 순간의 하늘과 땅의 기운을 읽어드립니다</p>
+</header>
+
+<main>
+  <!-- 입력 -->
+  <section class="card" id="inputCard">
+    <h2>생년월일시 입력</h2>
+    <div class="form-grid">
+      <label class="field">
+        <span>이름 <em>(선택)</em></span>
+        <input type="text" id="name" placeholder="예: 김철수" maxlength="10" autocomplete="off">
+      </label>
+      <div class="field">
+        <span>성별</span>
+        <div class="seg" id="genderSeg">
+          <button type="button" data-v="male" class="on">남자</button>
+          <button type="button" data-v="female">여자</button>
+        </div>
+      </div>
+      <div class="field">
+        <span>달력</span>
+        <div class="seg" id="calSeg">
+          <button type="button" data-v="solar" class="on">양력</button>
+          <button type="button" data-v="lunar">음력</button>
+        </div>
+      </div>
+      <div class="field">
+        <span>생년월일</span>
+        <div class="date-row">
+          <select id="yearSel" aria-label="년"></select>
+          <select id="monthSel" aria-label="월"></select>
+          <select id="daySel" aria-label="일"></select>
+        </div>
+        <label class="leap hidden" id="leapWrap"><input type="checkbox" id="leapChk"> 윤달입니다</label>
+      </div>
+      <label class="field">
+        <span>태어난 시간</span>
+        <select id="hourSel"></select>
+      </label>
+    </div>
+    <p class="err hidden" id="errMsg"></p>
+    <button class="cta" id="goBtn">내 사주 보기</button>
+    <p class="hint">시간을 모르면 '모름'을 선택하세요. 시주(時柱) 없이 풀이합니다.</p>
+  </section>
+
+  <!-- 결과 -->
+  <section id="result" class="hidden"></section>
+</main>
+
+<footer>
+  <p>전통 명리학의 계산 방식을 따른 참고용 콘텐츠입니다. 중요한 결정은 신중하게.</p>
+  <p class="copy">사주팔자 · GitHub Pages</p>
+</footer>
+
+<script src="js/saju.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+:root{
+  --bg:#0d1320; --bg2:#111a2e;
+  --ink:#f2ead8; --ink-dim:#b9b2a0; --ink-faint:#7d7768;
+  --gold:#c9a24b; --gold-soft:#e6c878;
+  --line:rgba(201,162,75,.28);
+  --card:rgba(255,255,255,.035);
+  --wood:#5fc878; --fire:#f06060; --earth:#e0aa4e; --metal:#c3ccd8; --water:#5aa2ff;
+  --serif:'Noto Serif KR',serif; --sans:'Noto Sans KR',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans); color:var(--ink); background:var(--bg);
+  background-image:radial-gradient(1200px 600px at 50% -10%,#1b2540 0%,var(--bg) 60%);
+  min-height:100vh; line-height:1.6;
+}
+.stars{position:fixed;inset:0;pointer-events:none;opacity:.5;
+  background-image:
+    radial-gradient(1px 1px at 12% 22%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 68% 8%,#fff 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 84% 30%,#ffe9b0 50%,transparent 51%),
+    radial-gradient(1px 1px at 32% 64%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 52% 44%,#fff 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 8% 78%,#ffe9b0 50%,transparent 51%),
+    radial-gradient(1px 1px at 92% 66%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 44% 12%,#fff 50%,transparent 51%);
+}
+.hero{text-align:center;padding:64px 20px 36px;position:relative}
+.brand{font-family:var(--serif);letter-spacing:.5em;color:var(--gold);font-size:.85rem;margin-bottom:14px}
+.hero h1{font-family:var(--serif);font-weight:900;font-size:clamp(2.6rem,7vw,4.2rem);letter-spacing:.12em;
+  background:linear-gradient(180deg,#fff6dd,#c9a24b);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .sub{color:var(--ink-dim);margin-top:10px;font-weight:300}
+main{max-width:880px;margin:0 auto;padding:0 20px 60px;position:relative}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;
+  padding:30px;backdrop-filter:blur(6px);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.card h2{font-family:var(--serif);font-size:1.25rem;margin-bottom:22px;color:var(--gold-soft);letter-spacing:.08em}
+.hidden{display:none!important}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.field{display:flex;flex-direction:column;gap:8px}
+.field>span{font-size:.85rem;color:var(--ink-dim)}
+.field>span em{font-style:normal;color:var(--ink-faint);font-size:.75rem}
+input[type=text],select{
+  background:rgba(0,0,0,.35);border:1px solid var(--line);color:var(--ink);
+  border-radius:10px;padding:12px 14px;font-size:1rem;font-family:var(--sans);width:100%}
+input[type=text]:focus,select:focus{outline:none;border-color:var(--gold)}
+select option{background:#141c30}
+.seg{display:flex;background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{flex:1;padding:12px;border:none;background:transparent;color:var(--ink-dim);
+  font-family:var(--sans);font-size:1rem;cursor:pointer;transition:.2s}
+.seg button.on{background:linear-gradient(180deg,#d9b45f,#a8842f);color:#1a1408;font-weight:700}
+.date-row{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px}
+.leap{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.9rem;color:var(--ink-dim);cursor:pointer}
+.leap input{width:18px;height:18px;accent-color:var(--gold)}
+.err{color:#ff8f8f;font-size:.9rem;margin-top:14px}
+.cta{display:block;width:100%;margin-top:24px;padding:16px;border:none;border-radius:12px;cursor:pointer;
+  font-family:var(--serif);font-size:1.15rem;font-weight:700;letter-spacing:.15em;color:#1a1408;
+  background:linear-gradient(180deg,#f0d488,#c9a24b);box-shadow:0 8px 24px rgba(201,162,75,.35);transition:.2s}
+.cta:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(201,162,75,.45)}
+.hint{text-align:center;color:var(--ink-faint);font-size:.8rem;margin-top:12px}
+
+/* 결과 */
+.res-head{text-align:center;padding:34px 20px 8px}
+.res-head .who{font-family:var(--serif);font-size:1.6rem;margin-bottom:6px}
+.res-head .who b{color:var(--gold-soft)}
+.res-head .birth{color:var(--ink-dim);font-size:.92rem}
+.res-head .zodiac{display:inline-block;margin-top:10px;padding:6px 18px;border:1px solid var(--line);
+  border-radius:999px;color:var(--gold-soft);font-size:.9rem}
+
+.pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:26px 0}
+.pillar{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;text-align:center;
+  animation:rise .5s ease both}
+.pillar:nth-child(2){animation-delay:.08s}.pillar:nth-child(3){animation-delay:.16s}.pillar:nth-child(4){animation-delay:.24s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.pillar .plabel{font-size:.8rem;color:var(--ink-dim);padding:10px 0 2px;letter-spacing:.2em}
+.pillar .god{font-size:.78rem;color:var(--gold-soft);min-height:1.4em}
+.pillar .stem{border-top:3px solid var(--gold);padding:10px 4px 2px}
+.pillar .branch{padding:2px 4px 12px}
+.pillar .hanja{font-family:var(--serif);font-weight:700;font-size:2.6rem;line-height:1.25}
+.pillar .kor{font-size:.82rem;color:var(--ink-dim)}
+.pillar.day{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 10px 30px rgba(201,162,75,.25);position:relative}
+.pillar.day .plabel{color:var(--gold-soft);font-weight:700}
+.pillar.unknown .hanja{color:var(--ink-faint);font-size:2rem}
+.el-0{color:var(--wood)} .el-1{color:var(--fire)} .el-2{color:var(--earth)} .el-3{color:var(--metal)} .el-4{color:var(--water)}
+.pillar .stem.elb-0{border-top-color:var(--wood)} .pillar .stem.elb-1{border-top-color:var(--fire)}
+.pillar .stem.elb-2{border-top-color:var(--earth)} .pillar .stem.elb-3{border-top-color:var(--metal)}
+.pillar .stem.elb-4{border-top-color:var(--water)}
+
+.sec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin:14px 0}
+.sec h3{font-family:var(--serif);color:var(--gold-soft);font-size:1.05rem;margin-bottom:12px;letter-spacing:.06em}
+.sec p{font-size:.95rem;color:#e8e0cc;font-weight:300}
+.sec p+p{margin-top:8px}
+.sec .advice{margin-top:10px;padding:12px 14px;border-left:3px solid var(--gold);
+  background:rgba(201,162,75,.08);border-radius:0 8px 8px 0;font-size:.92rem}
+
+.elbars{display:grid;gap:10px;margin-top:6px}
+.elbar{display:grid;grid-template-columns:52px 1fr 30px;align-items:center;gap:10px;font-size:.88rem}
+.elbar .track{height:10px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+.elbar .fill{height:100%;border-radius:99px;transition:width 1s ease}
+.elbar .cnt{text-align:right;color:var(--ink-dim)}
+
+.badges{display:flex;flex-wrap:wrap;gap:8px}
+.badge{padding:7px 14px;border-radius:999px;font-size:.85rem;border:1px solid var(--line)}
+.badge.he{border-color:#7fc8ff;color:#aadcff;background:rgba(90,162,255,.1)}
+.badge.chong{border-color:#ff9d9d;color:#ffc4c4;background:rgba(240,96,96,.1)}
+.badge.sanhe{border-color:var(--gold);color:var(--gold-soft);background:rgba(201,162,75,.1)}
+
+.daeun-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.daeun-head .dir{font-size:.85rem;color:var(--ink-dim)}
+.daeun-list{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.dw{background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:10px;padding:12px 8px;text-align:center}
+.dw .age{font-size:.78rem;color:var(--ink-dim);margin-bottom:4px}
+.dw .gz{font-family:var(--serif);font-size:1.3rem;font-weight:700}
+.dw.now{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.dw.now .age{color:var(--gold-soft);font-weight:700}
+
+.seun{display:flex;gap:12px;flex-wrap:wrap}
+.seun .su{flex:1;min-width:140px;background:rgba(0,0,0,.3);border:1px solid var(--line);
+  border-radius:10px;padding:14px;text-align:center}
+.seun .su .t{font-size:.8rem;color:var(--ink-dim);margin-bottom:4px}
+.seun .su .g{font-family:var(--serif);font-size:1.5rem;font-weight:700}
+
+.res-actions{display:flex;gap:10px;margin-top:22px}
+.res-actions button{flex:1;padding:14px;border-radius:12px;cursor:pointer;font-size:1rem;font-family:var(--sans)}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn-gold{background:linear-gradient(180deg,#f0d488,#c9a24b);border:none;color:#1a1408;font-weight:700}
+
+footer{text-align:center;color:var(--ink-faint);font-size:.8rem;padding:0 20px 40px}
+footer .copy{margin-top:6px}
+
+@media (max-width:640px){
+  .form-grid{grid-template-columns:1fr}
+  .pillars{grid-template-columns:repeat(2,1fr)}
+  .daeun-list{grid-template-columns:repeat(2,1fr)}
+  .card{padding:22px 18px}
+  .pillar .hanja{font-size:2.2rem}
+}
