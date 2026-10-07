@@ -257,4 +257,108 @@ function render(name, birthLabel, r, solarMs){
 };
 
 function esc(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---------- 탭 전환 ---------- */
+document.querySelectorAll('.tabs button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.tabs button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    $('tab-saju').classList.toggle('hidden', b.dataset.tab !== 'saju');
+    $('tab-tarot').classList.toggle('hidden', b.dataset.tab !== 'tarot');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+/* ---------- 타로 ---------- */
+segWire('spreadSeg');
+const TAROT_POS3 = ['과거', '현재', '미래'];
+let tarotDraw = null;
+
+function shuffledDeck(){
+  const idx = TAROT_CARDS.map((_, i) => i);
+  const rnd = new Uint32Array(idx.length);
+  crypto.getRandomValues(rnd);
+  for(let i = idx.length - 1; i > 0; i--){
+    const j = rnd[i] % (i + 1);
+    [idx[i], idx[j]] = [idx[j], idx[i]];
+  }
+  return idx;
+}
+
+$('drawBtn').addEventListener('click', () => {
+  const n = +$('spreadSeg').querySelector('.on').dataset.v;
+  const deck = shuffledDeck().slice(0, n);
+  const rnd = new Uint32Array(n);
+  crypto.getRandomValues(rnd);
+  tarotDraw = deck.map((ci, i) => ({
+    card: TAROT_CARDS[ci], rev: (rnd[i] % 100) < 40,
+    pos: n === 3 ? TAROT_POS3[i] : null, flipped: false,
+  }));
+  $('tarotReading').innerHTML = '';
+  const q = $('taroQ').value.trim();
+  renderTarotStage(true, q);
+});
+
+function tarotFaceHTML(c){
+  if(c.arc === 'major')
+    return `<div class="t-arc">MAJOR ARCANA</div><div class="t-num">${c.num}</div>` +
+      `<div class="t-sym">${c.sym}</div><div class="t-name">${c.name}</div><div class="t-en">${c.en}</div>`;
+  const s = TAROT_SUITS[c.suit];
+  const rankKR = { A:'A', P:'시종', N:'기사', Q:'여왕', K:'왕' }[c.num] || c.num;
+  return `<div class="t-arc">${s.en.toUpperCase()} · ${s.el}</div><div class="t-num">${rankKR}</div>` +
+    `<div class="t-sym suit" style="color:${s.color}">${s.glyph}</div><div class="t-name">${c.name}</div><div class="t-en">${c.en}</div>`;
+}
+
+function renderTarotStage(shuffle, question){
+  const st = $('tarotStage');
+  st.className = 'n' + tarotDraw.length + (shuffle ? ' shuffling' : '');
+  st.innerHTML = tarotDraw.map((d, i) => `
+    <div><div class="tcard" data-i="${i}"><div class="tcard-inner">
+      <div class="tface tback"><div><div class="bpat">✦</div><div class="btxt">TAROT</div></div></div>
+      <div class="tface tfront${d.rev ? ' is-rev' : ''}"><div class="face-rot">${tarotFaceHTML(d.card)}</div></div>
+    </div></div>${d.pos ? `<div class="t-pos"><b>${d.pos}</b></div>` : ''}
+    </div>`).join('');
+  st.querySelectorAll('.tcard').forEach(el =>
+    el.addEventListener('click', () => flipTarotCard(+el.dataset.i, el)));
+  if(shuffle) setTimeout(() => st.classList.remove('shuffling'), 1600);
+  if(question){
+    const q = document.createElement('p');
+    q.className = 'hint'; q.style.marginBottom = '4px';
+    q.textContent = 'Q. ' + question;
+    st.prepend(q);
+  }
+}
+
+function flipTarotCard(i, el){
+  const d = tarotDraw[i];
+  if(!d || d.flipped) return;
+  d.flipped = true;
+  el.classList.add('flipped');
+  setTimeout(() => renderTarotReading(i), 380);
+}
+
+function renderTarotReading(i){
+  const d = tarotDraw[i], c = d.card;
+  const div = document.createElement('div');
+  div.className = 'treading';
+  div.innerHTML =
+    `<div class="r-head">${d.pos ? `<span class="r-pos">${d.pos}</span>` : ''}` +
+    `<span class="r-name">${c.name}</span>` +
+    `<span class="r-dir${d.rev ? ' reversed' : ''}">${d.rev ? '역방향' : '정방향'}</span></div>` +
+    `<div class="r-key">${c.key}</div><div class="r-text">${d.rev ? c.rev : c.up}</div>`;
+  $('tarotReading').appendChild(div);
+  if(tarotDraw.every(x => x.flipped)){
+    const w = document.createElement('div');
+    w.className = 'taro-actions';
+    w.innerHTML = `<button class="btn-ghost" id="redrawBtn" style="flex:1;padding:14px;border-radius:12px;cursor:pointer;font-size:1rem">다시 뽑기</button>
+      <button class="btn-gold" id="goSajuBtn" style="flex:1;padding:14px;border-radius:12px;border:none;cursor:pointer;font-size:1rem;font-weight:700">사주 보러 가기</button>`;
+    $('tarotReading').appendChild(w);
+    $('redrawBtn').addEventListener('click', () => $('drawBtn').click());
+    $('goSajuBtn').addEventListener('click', () =>
+      document.querySelector('.tabs button[data-tab="saju"]').click());
+    w.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else {
+    div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
 })();
